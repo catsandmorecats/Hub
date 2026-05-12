@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>The Verdict Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf6e8;
+    --ink: #1c1409;
+    --gold: #e8a020;
+    --rust: #c94020;
+    --sage: #4a7c59;
+    --cream: #faf0d0;
+    --border: #d4b870;
+    --mid: #8a7050;
+    --card: #fff9ee;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRAIN TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeDown 0.5s ease forwards;
+  }
+
+  .header-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .header h1 span {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--mid);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  @keyframes fadeDown {
+    from { opacity:0; transform:translateY(-12px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  @keyframes popIn {
+    from { opacity:0; transform:scale(0.92); }
+    to { opacity:1; transform:scale(1); }
+  }
+
+  /* ROUND INDICATOR */
+  .round-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 8px 14px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    animation: fadeUp 0.5s 0.1s ease forwards;
+    opacity: 0;
+  }
+
+  .round-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+  }
+
+  .round-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .round-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    transition: all 0.3s;
+  }
+
+  .round-dot.done { background: var(--gold); border-color: var(--gold); }
+  .round-dot.current { background: var(--rust); border-color: var(--rust); }
+
+  /* SUBJECT CARD */
+  .subject-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s 0.15s ease forwards;
+    opacity: 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+
+  .subject-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--rust), var(--sage));
+  }
+
+  .subject-type {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .subject-emoji {
+    font-size: 72px;
+    display: block;
+    margin-bottom: 10px;
+    line-height: 1;
+    animation: bounce 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+
+  @keyframes bounce {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .subject-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .subject-prompt {
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.5;
+  }
+
+  /* PLAYER INPUTS */
+  .players-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.5s 0.2s ease forwards;
+    opacity: 0;
+  }
+
+  .player-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px;
+    position: relative;
+  }
+
+  .player-label {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .player-card:first-child .player-label { color: var(--rust); }
+  .player-card:last-child .player-label { color: var(--sage); }
+
+  .player-name-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    outline: none;
+  }
+
+  .player-name-input:focus { border-color: var(--gold); }
+  .player-name-input::placeholder { color: #c0a878; }
+
+  /* ANSWER BUTTONS */
+  .answer-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .answer-btn {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+
+  .answer-btn:active { transform: scale(0.97); }
+
+  .answer-btn.selected-a {
+    background: #fff0ec;
+    border-color: var(--rust);
+    color: var(--rust);
+    font-weight: 500;
+  }
+
+  .answer-btn.selected-b {
+    background: #eef6f0;
+    border-color: var(--sage);
+    color: var(--sage);
+    font-weight: 500;
+  }
+
+  .answer-btn.dim { opacity: 0.35; }
+
+  /* REVEAL BUTTON */
+  .reveal-btn {
+    width: 100%;
+    background: var(--ink);
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s 0.25s ease forwards;
+    opacity: 0;
+    display: block;
+  }
+
+  .reveal-btn:active { transform: scale(0.98); background: var(--rust); }
+  .reveal-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* VERDICT CARD */
+  .verdict-card {
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    display: none;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .verdict-card.visible { display: block; }
+
+  .verdict-card::after {
+    content: '✦';
+    position: absolute;
+    top: -10px; right: 20px;
+    font-size: 80px;
+    color: rgba(255,255,255,0.03);
+    pointer-events: none;
+  }
+
+  .verdict-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .verdict-text {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bg);
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+
+  .verdict-text em { color: var(--gold); font-style: italic; }
+
+  .players-compared {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .compared-box {
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .compared-who {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .compared-a .compared-who { color: #ff9080; }
+  .compared-b .compared-who { color: #80d090; }
+
+  .compared-answer {
+    font-size: 13px;
+    color: var(--bg);
+    line-height: 1.4;
+  }
+
+  .verdict-match {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .verdict-match.same { background: rgba(232,160,32,0.2); color: var(--gold); }
+  .verdict-match.different { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+
+  /* NEXT / PLAY AGAIN */
+  .next-btn {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--mid);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    display: none;
+  }
+
+  .next-btn.visible { display: block; animation: fadeUp 0.4s ease forwards; }
+  .next-btn:active { border-color: var(--gold); color: var(--gold); }
+
+  /* SCORE STRIP */
+  .score-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  .score-box {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .score-who {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .score-val {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--ink);
+  }
+
+  .score-box:first-child .score-val { color: var(--rust); }
+  .score-box:last-child .score-val { color: var(--sage); }
+
+  /* FINAL SCREEN */
+  .final-screen {
+    display: none;
+    text-align: center;
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  }
+
+  .final-screen.visible { display: block; }
+
+  .final-title {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .final-sub {
+    font-size: 14px;
+    color: var(--mid);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .final-verdict {
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .final-verdict-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .final-verdict-body {
+    font-size: 13px;
+    color: var(--bg);
+    line-height: 1.7;
+  }
+
+  .play-again-btn {
+    width: 100%;
+    background: var(--gold);
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .play-again-btn:active { transform: scale(0.98); opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <span class="header-eyebrow">Two Players · One Verdict</span>
+    <h1>The <span>Verdict</span><br>Game</h1>
+    <p>Same thing. Different takes. One absurd conclusion.</p>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setupScreen">
+    <div class="players-wrap" style="animation:fadeUp 0.5s 0.1s ease forwards; opacity:0;">
+      <div class="player-card">
+        <span class="player-label">Player One</span>
+        <input class="player-name-input" id="nameA" placeholder="Your name..." maxlength="12">
+      </div>
+      <div class="player-card">
+        <span class="player-label">Player Two</span>
+        <input class="player-name-input" id="nameB" placeholder="Your name..." maxlength="12">
+      </div>
+    </div>
+    <button class="reveal-btn" style="animation:fadeUp 0.5s 0.2s ease forwards; opacity:0;" onclick="startGame()">Let's play →</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" style="display:none;">
+
+    <div class="round-bar">
+      <span class="round-label">Round <span id="roundNum">1</span> of 5</span>
+      <div class="round-dots" id="roundDots"></div>
+    </div>
+
+    <div class="subject-card" id="subjectCard">
+      <span class="subject-type" id="subjectType">—</span>
+      <span class="subject-emoji" id="subjectEmoji">🐱</span>
+      <div class="subject-title" id="subjectTitle">—</div>
+      <div class="subject-prompt" id="subjectPrompt">—</div>
+    </div>
+
+    <div class="players-wrap" id="playerInputs">
+      <div class="player-card">
+        <span class="player-label" id="labelA">Player One</span>
+        <div class="answer-grid" id="answersA"></div>
+      </div>
+      <div class="player-card">
+        <span class="player-label" id="labelB">Player Two</span>
+        <div class="answer-grid" id="answersB"></div>
+      </div>
+    </div>
+
+    <button class="reveal-btn" id="revealBtn" onclick="revealVerdict()" disabled>Choose your answers first</button>
+
+    <div class="verdict-card" id="verdictCard">
+      <span class="verdict-eyebrow">THE OFFICIAL VERDICT</span>
+      <div class="verdict-text" id="verdictText">—</div>
+      <div class="players-compared">
+        <div class="compared-box compared-a">
+          <span class="compared-who" id="whoA">—</span>
+          <div class="compared-answer" id="answerA">—</div>
+        </div>
+        <div class="compared-box compared-b">
+          <span class="compared-who" id="whoB">—</span>
+          <div class="compared-answer" id="answerB">—</div>
+        </div>
+      </div>
+      <div class="verdict-match" id="matchLine">—</div>
+    </div>
+
+    <button class="next-btn" id="nextBtn" onclick="nextRound()">Next round →</button>
+
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="final-screen" id="finalScreen">
+    <div class="final-title" id="finalTitle">—</div>
+    <div class="final-sub" id="finalSub">—</div>
+    <div class="final-verdict" id="finalVerdict">
+      <span class="final-verdict-title">Official Trip Verdict</span>
+      <div class="final-verdict-body" id="finalVerdictBody">—</div>
+    </div>
+    <button class="play-again-btn" onclick="resetGame()">Play again ↺</button>
+  </div>
+
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+
+const rounds = [
+  {
+    type: 'CAT SCENARIO',
+    emoji: '🐱',
+    title: 'This cat has just knocked your drink off the table.',
+    prompt: 'Why did it do that?',
+    answers: [
+      'Pure chaos. No reason. It saw the opportunity and took it.',
+      'It was conducting an important physics experiment.',
+      'It wanted attention and this was the most efficient method.',
+      'It was a warning. Something is coming.'
+    ],
+    verdicts: {
+      same: (a, ans) => `Both said: "${ans}". The cat has been studied. Its motives are now officially on record.`,
+      diff: (a, ansA, b, ansB) => `${a} thinks it was "${ansA}". ${b} thinks "${ansB}". The cat has heard both theories and remains unimpressed by either.`
+    }
+  },
+  {
+    type: 'DEEP QUESTION',
+    emoji: '🤔',
+    title: 'A cat walks into a room and stares at nothing.',
+    prompt: 'What is it looking at?',
+    answers: [
+      'A ghost. Definitely a ghost.',
+      'A tiny spider that only it can see.',
+      'The dimensional rift it uses to travel between worlds.',
+      'Nothing. It is simply malfunctioning.'
+    ],
+    verdicts: {
+      same: (a, ans) => `Both chose: "${ans}". Science has been advanced today. The cat remains unavailable for comment.`,
+      diff: (a, ansA, b, ansB) => `${a} voted "${ansA}". ${b} went with "${ansB}". One of these is correct. Cats aren't saying which.`
+    }
+  },
+  {
+    type: 'DIFFICULT CHOICE',
+    emoji: '😬',
+    title: 'You have to explain what a theme park is to someone who has never heard of one.',
+    prompt: 'You have exactly one sentence.',
+    answers: [
+      '"It\'s a place where you pay a lot of money to stand in a queue and then feel briefly amazing."',
+      '"Imagine someone took the concept of fun and turned it into a building."',
+      '"Everyone is slightly sticky and moving very slowly except on the rides."',
+      '"It\'s basically a controlled version of chaos with snacks."'
+    ],
+    verdicts: {
+      same: (a, ans) => `Both landed on the same sentence. This is now the official definition. Theme parks have been explained.`,
+      diff: (a, ansA, b, ansB) => `${a} said ${ansA}. ${b} went with ${ansB}. Both are correct. Neither is suitable for a dictionary.`
+    }
+  },
+  {
+    type: 'CAT SCENARIO',
+    emoji: '😾',
+    title: 'This cat has been caught eating something it definitely should not have eaten.',
+    prompt: 'What is its defence?',
+    answers: [
+      '"I was never in that room."',
+      '"That was already like that when I found it."',
+      '"You can\'t prove anything."',
+      'It simply stares at you until you feel guilty instead.'
+    ],
+    verdicts: {
+      same: (a, ans) => `Both picked: "${ans}". The cat\'s legal team has been notified. The case has been dropped due to insufficient evidence.`,
+      diff: (a, ansA, b, ansB) => `${a} said "${ansA}". ${b} went with "${ansB}". The cat is innocent on both counts. It always is.`
+    }
+  },
+  {
+    type: 'FINAL ROUND',
+    emoji: '🏆',
+    title: 'One word to describe today.',
+    prompt: 'Pick the most accurate one.',
+    answers: [
+      'Eventful.',
+      'Unpredictable.',
+      'Surprisingly fine, actually.',
+      'A lot.'
+    ],
+    verdicts: {
+      same: (a, ans) => `Both said "${ans}". Today has been officially classified. The records have been updated.`,
+      diff: (a, ansA, b, ansB) => `${a} said "${ansA}". ${b} said "${ansB}". Both are correct. Today contained multitudes.`
+    }
+  }
+];
+
+const finalVerdicts = [
+  (a, b, score) => `After five rounds, ${score === 5 ? 'every single answer matched — statistically impossible but apparently true' : score >= 3 ? 'more agreement than disagreement — a remarkable outcome' : 'wildly different takes on everything — which is correct'}. The official conclusion: both players are right about the cat.`,
+  (a, b) => `${a} and ${b} have now seen the same five things and reached completely ${Math.random()>0.5?'similar':'different'} conclusions. This is either deeply reassuring or a cause for further study.`,
+  () => `Today's game has been logged. The cat, the theme park, and the unexplained ceiling stare have all been officially documented. Case closed.`
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────
+let nameA = 'Player One';
+let nameB = 'Player Two';
+let currentRound = 0;
+let selectedA = null;
+let selectedB = null;
+let sameCount = 0;
+
+// ── SETUP ──────────────────────────────────────────────────────────────
+function startGame() {
+  nameA = document.getElementById('nameA').value.trim() || 'Player One';
+  nameB = document.getElementById('nameB').value.trim() || 'Player Two';
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  currentRound = 0;
+  sameCount = 0;
+  loadRound();
+}
+
+// ── ROUND ──────────────────────────────────────────────────────────────
+function loadRound() {
+  selectedA = null;
+  selectedB = null;
+
+  const r = rounds[currentRound];
+  document.getElementById('roundNum').textContent = currentRound + 1;
+  document.getElementById('subjectType').textContent = r.type;
+  document.getElementById('subjectEmoji').textContent = r.emoji;
+
+  // re-trigger bounce animation
+  const emoji = document.getElementById('subjectEmoji');
+  emoji.style.animation = 'none';
+  void emoji.offsetWidth;
+  emoji.style.animation = '';
+
+  document.getElementById('subjectTitle').textContent = r.title;
+  document.getElementById('subjectPrompt').textContent = r.prompt;
+  document.getElementById('labelA').textContent = nameA;
+  document.getElementById('labelB').textContent = nameB;
+
+  // round dots
+  const dots = document.getElementById('roundDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const d = document.createElement('div');
+    d.className = 'round-dot' + (i < currentRound ? ' done' : i === currentRound ? ' current' : '');
+    dots.appendChild(d);
+  }
+
+  // shuffle answers
+  const shuffled = [...r.answers].sort(() => Math.random() - 0.5);
+
+  buildAnswers('answersA', shuffled, 'a');
+  buildAnswers('answersB', shuffled, 'b');
+
+  const revealBtn = document.getElementById('revealBtn');
+  revealBtn.disabled = true;
+  revealBtn.textContent = 'Choose your answers first';
+
+  document.getElementById('verdictCard').classList.remove('visible');
+  document.getElementById('nextBtn').classList.remove('visible');
+}
+
+function buildAnswers(containerId, answers, player) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  answers.forEach(ans => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = ans;
+    btn.onclick = () => selectAnswer(player, ans, btn, containerId);
+    el.appendChild(btn);
+  });
+}
+
+function selectAnswer(player, answer, btn, containerId) {
+  if (player === 'a') selectedA = answer;
+  else selectedB = answer;
+
+  // highlight selection
+  document.querySelectorAll(`#${containerId} .answer-btn`).forEach(b => {
+    b.className = 'answer-btn dim';
+  });
+  btn.className = `answer-btn selected-${player}`;
+
+  checkReady();
+}
+
+function checkReady() {
+  if (selectedA && selectedB) {
+    const btn = document.getElementById('revealBtn');
+    btn.disabled = false;
+    btn.textContent = 'See the verdict ✦';
+  }
+}
+
+// ── VERDICT ──────────────────────────────────────────────────────────
+function revealVerdict() {
+  const r = rounds[currentRound];
+  const same = selectedA === selectedB;
+  if (same) sameCount++;
+
+  let verdictText;
+  if (same) {
+    verdictText = r.verdicts.same(nameA, selectedA);
+  } else {
+    verdictText = r.verdicts.diff(nameA, selectedA, nameB, selectedB);
+  }
+
+  document.getElementById('verdictText').innerHTML = verdictText.replace(/(".*?")/g, '<em>$1</em>');
+  document.getElementById('whoA').textContent = nameA;
+  document.getElementById('whoB').textContent = nameB;
+  document.getElementById('answerA').textContent = selectedA;
+  document.getElementById('answerB').textContent = selectedB;
+
+  const matchLine = document.getElementById('matchLine');
+  if (same) {
+    matchLine.textContent = '✦ Matching answers — remarkable alignment detected';
+    matchLine.className = 'verdict-match same';
+  } else {
+    matchLine.textContent = '✦ Different answers — both defensible';
+    matchLine.className = 'verdict-match different';
+  }
+
+  document.getElementById('verdictCard').classList.add('visible');
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = currentRound < 4 ? 'Next round →' : 'See final verdict →';
+  nextBtn.classList.add('visible');
+
+  document.getElementById('revealBtn').style.display = 'none';
+  document.getElementById('verdictCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── NEXT ──────────────────────────────────────────────────────────────
+function nextRound() {
+  currentRound++;
+  if (currentRound >= 5) {
+    showFinal();
+  } else {
+    document.getElementById('revealBtn').style.display = 'block';
+    loadRound();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ── FINAL ──────────────────────────────────────────────────────────────
+function showFinal() {
+  document.getElementById('gameScreen').style.display = 'none';
+  const fs = document.getElementById('finalScreen');
+  fs.classList.add('visible');
+
+  const winner = sameCount >= 3
+    ? `${nameA} & ${nameB} agreed ${sameCount} out of 5 times.`
+    : `${nameA} & ${nameB} disagreed more than they agreed.`;
+
+  document.getElementById('finalTitle').textContent = sameCount >= 3 ? 'Aligned.' : 'Distinct.';
+  document.getElementById('finalSub').textContent = winner + ' The official record has been filed.';
+
+  const vIdx = Math.floor(Math.random() * finalVerdicts.length);
+  document.getElementById('finalVerdictBody').textContent = finalVerdicts[vIdx](nameA, nameB, sameCount);
+
+  fs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── RESET ──────────────────────────────────────────────────────────────
+function resetGame() {
+  currentRound = 0;
+  sameCount = 0;
+  selectedA = null;
+  selectedB = null;
+  document.getElementById('finalScreen').classList.remove('visible');
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('revealBtn').style.display = 'block';
+  loadRound();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
