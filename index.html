@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:      #1a3a3a;
+      --coral:   #f2694a;
+      --lime:    #a8d44f;
+      --gold:    #f5c842;
+      --sky:     #6ec6d8;
+      --paper:   #fdf6ec;
+      --soft:    rgba(253, 246, 236, 0.75);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      min-height: 100dvh;
+      font-family: 'Caveat', cursive;
+      color: var(--paper);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 4rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── GEOMETRIC BACKGROUND ── */
+    .geo {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .geo svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── ALL CONTENT ABOVE GEO ── */
+    header, main, footer { position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    h1 {
+      font-family: 'Caveat Brush', cursive;
+      font-size: clamp(3.5rem, 14vw, 6rem);
+      color: var(--gold);
+      line-height: 1;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+      letter-spacing: 0.02em;
+    }
+
+    .tagline {
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
+      color: var(--soft);
+      margin-top: 0.3rem;
+      font-weight: 600;
+    }
+
+    .squiggle {
+      width: 80px;
+      margin: 0.8rem auto 0;
+      display: block;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.1rem;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    @media (min-width: 580px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── CARDS ── */
+    .card {
+      border-radius: 16px;
+      padding: 1.6rem 1.5rem 1.4rem;
+      text-decoration: none;
+      color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s;
+      cursor: pointer;
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    .card:nth-child(1) { background: var(--coral);  animation-delay: 0.12s; }
+    .card:nth-child(2) { background: var(--lime);   animation-delay: 0.22s; }
+    .card:nth-child(3) { background: var(--sky);    animation-delay: 0.32s; }
+    .card:nth-child(4) { background: var(--gold);   animation-delay: 0.42s; }
+
+    .card:hover {
+      transform: rotate(-1deg) scale(1.03);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    }
+
+    .card:active { transform: scale(0.97); }
+
+    /* little corner doodle */
+    .card::before {
+      content: '✦';
+      position: absolute;
+      top: 0.7rem;
+      right: 0.9rem;
+      font-size: 1rem;
+      opacity: 0.3;
+    }
+
+    .card-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.6;
+    }
+
+    .card-title {
+      font-family: 'Caveat Brush', cursive;
+      font-size: clamp(1.6rem, 6vw, 2.1rem);
+      line-height: 1.1;
+      color: #1a1a1a;
+    }
+
+    .card-desc {
+      font-size: clamp(0.95rem, 3vw, 1.1rem);
+      line-height: 1.4;
+      opacity: 0.75;
+      margin-top: 0.2rem;
+    }
+
+    .card-go {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0.85;
+    }
+
+    /* ── COMING SOON ── */
+    .card.soon {
+      background: rgba(253, 246, 236, 0.08) !important;
+      border: 2px dashed rgba(253, 246, 236, 0.25);
+      color: var(--soft);
+      pointer-events: none;
+    }
+
+    .card.soon .card-title { color: var(--soft); opacity: 0.5; }
+    .card.soon .card-desc  { opacity: 0.4; }
+    .card.soon .card-go    { opacity: 0.3; }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 2.5rem;
+      font-size: 1rem;
+      color: rgba(253,246,236,0.3);
+      text-align: center;
+      animation: popIn 0.5s 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+
+    @supports (padding: env(safe-area-inset-bottom)) {
+      body { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- GEOMETRIC BACKGROUND -->
+  <div class="geo" aria-hidden="true">
+    <svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- large circle top-right -->
+      <circle cx="720" cy="80" r="220" fill="#f2694a" opacity="0.12"/>
+      <!-- triangle bottom-left -->
+      <polygon points="-60,900 260,480 -60,420" fill="#a8d44f" opacity="0.1"/>
+      <!-- rotated square mid-left -->
+      <rect x="-80" y="300" width="220" height="220" rx="8" fill="#6ec6d8" opacity="0.1" transform="rotate(25 -80 300)"/>
+      <!-- small circle mid-right -->
+      <circle cx="760" cy="550" r="130" fill="#f5c842" opacity="0.1"/>
+      <!-- big rotated square bottom-right -->
+      <rect x="550" y="680" width="320" height="320" rx="12" fill="#f2694a" opacity="0.08" transform="rotate(-18 550 680)"/>
+      <!-- small triangle top-left -->
+      <polygon points="0,0 180,0 0,160" fill="#f5c842" opacity="0.09"/>
+      <!-- mid circle center-low -->
+      <circle cx="400" cy="820" r="160" fill="#6ec6d8" opacity="0.07"/>
+    </svg>
+  </div>
+
+  <header>
+    <h1>The Hub</h1>
+    <p class="tagline">pick something and go</p>
+    <!-- hand-drawn squiggle underline -->
+    <svg class="squiggle" viewBox="0 0 80 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 8 C12 2, 20 12, 30 6 C40 0, 50 10, 60 5 C68 1, 74 8, 78 6"
+            stroke="#f5c842" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    </svg>
+  </header>
+
+  <main class="grid" role="main">
+
+    <!-- TOOL 1: The Verdict Game -->
+    <a class="card" href="YOUR_VERDICT_URL_HERE" target="_blank" rel="noopener">
+      <span class="card-label">2 players</span>
+      <span class="card-title">The Verdict</span>
+      <p class="card-desc">Five rounds of cats, chaos, and completely absurd judgements.</p>
+      <span class="card-go">Let's go →</span>
+    </a>
+
+    <!-- TOOL 2: Activity Spinner -->
+    <a class="card" href="YOUR_SPINNER_URL_HERE" target="_blank" rel="noopener">
+      <span class="card-label">solo</span>
+      <span class="card-title">The Spinner</span>
+      <p class="card-desc">Spin it. See what happens. Something good, probably.</p>
+      <span class="card-go">Spin it →</span>
+    </a>
+
+    <!-- PLACEHOLDER — duplicate and fill in as new tools are built -->
+    <div class="card soon" aria-hidden="true">
+      <span class="card-label">coming soon</span>
+      <span class="card-title">Something new</span>
+      <p class="card-desc">Not ready yet. Watch this space.</p>
+      <span class="card-go">soon →</span>
+    </div>
+
+  </main>
+
+  <footer>more things coming ✦</footer>
+
+</body>
+</html>
